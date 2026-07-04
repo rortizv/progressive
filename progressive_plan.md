@@ -315,8 +315,24 @@ Repo: **https://github.com/rortizv/progressive**
   consumidores; no es tarea del creador).
 - [x] 🤖 Primer push a GitHub.
 - [x] **Fase 0 cerrada.**
-- [ ] 🤖 (Fase 1) extraer `@progressive/ssr-nest` como librería real + 🛑
-  preparativos npm + publicar.
+- [x] 🤖 `@progressive/ssr-nest` extraída como librería publicable en
+  `packages/ssr-nest`, con API pública `mountAngularSsr(app, { angularDistPath })`.
+  `playground-server` ya la consume (no más código duplicado) y se verificó
+  funcionando idéntico al spike de Fase 0. Push hecho.
+- [ ] 🛑 Preparativos npm (sección 10.2): cuenta npm + 2FA, crear org `@progressive`.
+- [ ] 🛑 Primera publicación real (`npm publish --access public`, sección 10.3).
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.
+
+### Nota técnica de la extracción (Fase 1)
+
+`@nx/webpack`'s `NxAppWebpackPlugin` externaliza por defecto **todo** paquete de
+terceros (`externalDependencies: 'all'`), asumiendo que vive en `node_modules` con
+un build ya compilado. Pero `@progressive/ssr-nest`, al no estar publicada aún, solo
+existe como symlink de npm workspaces apuntando a su código TypeScript fuente (sin
+compilar) — así que dejarla externalizada rompe el `require()` en tiempo de
+ejecución. Se resolvió listando explícitamente en `externalDependencies` solo los
+paquetes de terceros reales (`@nestjs/*`, `fastify`, etc.), dejando fuera de esa
+lista a `@progressive/ssr-nest` para que se empaquete inline desde su fuente. Una vez
+publicada en npm de verdad, este workaround deja de ser necesario.
