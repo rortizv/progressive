@@ -54,6 +54,9 @@
       "continuous": true,
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
+      "options": {
+        "proxyConfig": "examples/playground-web/proxy.config.json"
+      },
       "configurations": {
         "production": {
           "buildTarget": "playground-web:build:production"

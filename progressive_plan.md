@@ -162,8 +162,8 @@ progressive/
 | Fase | Qué entrega | Deploy asociado | Estado |
 |------|-------------|-----------------|--------|
 | **0** | Spike: Nest + Angular SSR en un proceso (`playground-web` + `playground-server`) | App Runner | ✅ **hecho, corriendo local** |
-| 1 | Extraer el pegamento a `@progressive/ssr-nest` + **1ª publicación npm** | npm | Pendiente |
-| 2 | Dev server unificado (Vite en middleware dentro de Nest) | — | Pendiente |
+| 1 | Extraer el pegamento a `@progressive/ssr-nest` | — | ✅ **hecho** (falta 1ª publicación npm) |
+| 2 | Dev server con HMR (`npm run dev`) | — | ✅ **hecho** (dos procesos + proxy, ver nota) |
 | 3 | Puente tipado front↔back (OpenAPI/orval o tRPC; luego `@ServerAction`) | npm | Pendiente |
 | 4 | Ergonomía de render (render mode por ruta, `@defer`, streaming, caché) | — | Pendiente |
 | 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | Pendiente |
@@ -202,6 +202,34 @@ framework** — es la guía de despliegue que le sirve a un dev que consuma Prog
 más adelante. Queda documentada para cuando la necesites (referenciarla en el README,
 o probarla tú mismo si algún día quieres validar el flujo completo de un consumidor),
 pero no bloquea el avance del roadmap.
+
+---
+
+## 8b. Fase 2 — dev server con HMR ✅ hecho
+
+**Lo que investigamos primero (y por qué NO lo hicimos):** la idea original era
+meter el dev-server de Angular (que usa Vite por dentro) como *middleware* dentro
+del propio proceso de Nest — un solo puerto también en desarrollo. Se descartó tras
+revisar el código fuente de `@angular/build`: la función que arma la configuración
+de Vite (`setupServer`) vive en una ruta interna **no exportada ni documentada** del
+paquete, y el dev-server siempre crea su servidor Vite y lo pone a escuchar él
+mismo, sin dar ningún gancho para interceptarlo antes. Construir sobre eso
+significaría depender de internals privados que se pueden romper con cualquier
+parche de Angular — no es una base seria para un framework.
+
+**Lo que hicimos en su lugar:** dos procesos en paralelo, con `npm run dev`:
+- Angular en `http://localhost:4200` con su dev-server real (HMR completo, sin tocar
+  nada) — **este es el puerto que abres en el navegador**.
+- NestJS en `http://localhost:3000`.
+- El `proxy.config.json` de Angular (función estable y documentada del CLI) reenvía
+  `/api/*` a Nest. Desde el navegador se siente como una sola app en un solo puerto.
+- Cada proceso arranca con su puerto fijado explícitamente (vía `concurrently`) para
+  no depender de variables de entorno ambiente que pudieran filtrarse desde fuera.
+
+**Verificado:** HMR de Angular funcionando (cambio de UI reflejado sin recargar la
+página) y reinicio automático de Nest al cambiar código del backend (ambos
+confirmados en vivo). En producción esto no cuesta nada — `npm start` sigue siendo
+el único proceso real de la sección 8.
 
 ---
 
@@ -321,6 +349,9 @@ Repo: **https://github.com/rortizv/progressive**
   funcionando idéntico al spike de Fase 0. Push hecho.
 - [ ] 🛑 Preparativos npm (sección 10.2): cuenta npm + 2FA, crear org `@progressive`.
 - [ ] 🛑 Primera publicación real (`npm publish --access public`, sección 10.3).
+- [x] 🤖 **Fase 2 cerrada:** `npm run dev` — Angular (`:4200`, HMR real) + Nest
+  (`:3000`) en paralelo, proxy vía `proxy.config.json`. HMR de UI y reinicio
+  automático de Nest verificados en vivo (sección 8b).
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.

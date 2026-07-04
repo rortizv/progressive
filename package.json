@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "build": "nx run-many -t build -p playground-web,playground-server",
-    "start": "node dist/examples/playground-server/main.js"
+    "start": "node dist/examples/playground-server/main.js",
+    "dev": "concurrently -n web,server -c blue,magenta \"NG_ALLOWED_HOSTS=localhost nx run playground-web:serve\" \"PORT=3000 nx run playground-server:serve\""
   },
   "private": true,
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/node": "^24.0.0",
     "@typescript-eslint/utils": "^8.40.0",
     "angular-eslint": "^21.2.0",
+    "concurrently": "^10.0.3",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
     "jsdom": "^27.1.0",
