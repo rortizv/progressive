@@ -1,0 +1,22 @@
+version: 1.0
+runtime: nodejs22
+build:
+  commands:
+    build:
+      - npm ci
+      - npm run build
+run:
+  command: npm start
+  network:
+    port: 3000
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: "3000"
+    # Angular's SSR engine rejects requests whose Host header isn't on this
+    # list (anti-SSRF protection) and silently falls back to CSR-only
+    # rendering instead of erroring. Update this once you know the App
+    # Runner default domain or your custom domain.
+    - name: NG_ALLOWED_HOSTS
+      value: "*"

@@ -1,0 +1,12 @@
+<main>
+  <h1>Progressive</h1>
+  <p>Angular SSR + NestJS running in a single Node.js process.</p>
+
+  @if (health.isLoading()) {
+    <p>Checking API health…</p>
+  } @else if (health.error()) {
+    <p>Could not reach /api/health.</p>
+  } @else if (health.value(); as data) {
+    <p>API status: <strong>{{ data.status }}</strong> (as of {{ data.timestamp }})</p>
+  }
+</main>
