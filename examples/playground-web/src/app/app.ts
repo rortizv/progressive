@@ -1,11 +1,9 @@
 import { Component } from '@angular/core';
-import { appControllerGetHealthResource } from './api/generated';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css',
 })
-export class App {
-  protected readonly health = appControllerGetHealthResource();
-}
+export class App {}

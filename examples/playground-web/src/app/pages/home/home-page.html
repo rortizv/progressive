@@ -1,0 +1,90 @@
+<main class="page">
+  <section class="card">
+    <div class="logos">
+      <img src="angular.svg" alt="Angular logo" class="logo" width="56" height="56" />
+      <span class="plus">+</span>
+      <img src="nestjs.svg" alt="NestJS logo" class="logo" width="56" height="56" />
+    </div>
+
+    <h1>Progressive</h1>
+    <p class="tagline">Angular SSR + NestJS, running in a single Node.js process.</p>
+
+    <div class="status" [class.status--loading]="health.isLoading()" [class.status--error]="health.error()">
+      @if (health.isLoading()) {
+        <span class="dot"></span> Checking API health…
+      } @else if (health.error()) {
+        <span class="dot"></span> Could not reach /api/health
+      } @else if (health.value(); as data) {
+        <span class="dot"></span> API status: <strong>{{ data.status }}</strong>
+        <span class="timestamp">{{ data.timestamp }}</span>
+      }
+    </div>
+
+    <ul class="checklist">
+      <li>Angular renders this page with real SSR (not just client-side)</li>
+      <li>NestJS serves <code>/api/*</code> and hosts the SSR engine above</li>
+      <li>Hydration reuses the server-rendered data — no double fetch</li>
+    </ul>
+
+    <div class="section">
+      <h2>Next steps</h2>
+      <ol>
+        <li><code>npm run build</code> — builds the Angular app and the Nest server</li>
+        <li><code>NG_ALLOWED_HOSTS=localhost npm start</code> — runs the single process</li>
+        <li>Edit <code>examples/playground-server/src/app</code> for API routes</li>
+        <li>Edit <code>examples/playground-web/src/app</code> for the UI</li>
+      </ol>
+    </div>
+
+    <button #detailsTrigger type="button" class="reveal-button">
+      Show render-mode details
+    </button>
+
+    @defer (on interaction(detailsTrigger)) {
+      <div class="section">
+        <h2>Under the hood</h2>
+        <p>
+          This block was <code>&#64;defer</code>-loaded — its code wasn't part of
+          the page's initial JS bundle or SSR payload, only fetched once you
+          clicked the button above.
+        </p>
+        <p>
+          This page renders with <code>RenderMode.Server</code> (fresh SSR on
+          every request — that's why the API status above has a live
+          timestamp). <a routerLink="/about" class="nav-link">The /about page</a>
+          uses <code>RenderMode.Prerender</code> instead: rendered once at
+          build time, then served as a static file forever.
+        </p>
+
+        <p>
+          <code>GET /api/build-info</code> is cached for 10s on the Nest side
+          with a plain <code>CacheInterceptor</code> — ISR-style, same
+          trade-off as Next.js's Incremental Static Regeneration. Click
+          reload a few times fast: the value only changes once the 10s
+          window has passed.
+        </p>
+        <p>
+          @if (buildInfo.value(); as info) {
+            random value: <strong>{{ info.randomValue }}</strong>
+            <span class="timestamp">(generated {{ info.generatedAt }})</span>
+          }
+        </p>
+        <button
+          type="button"
+          class="reveal-button"
+          (click)="buildInfo.reload()"
+        >
+          Reload /api/build-info
+        </button>
+      </div>
+    } @placeholder {
+      <p class="tagline">(deferred content — click the button above)</p>
+    } @loading {
+      <p class="tagline">Loading…</p>
+    }
+
+    <a class="repo-link" href="https://github.com/rortizv/progressive" target="_blank" rel="noopener">
+      github.com/rortizv/progressive
+    </a>
+  </section>
+</main>

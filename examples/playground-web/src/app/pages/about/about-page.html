@@ -1,0 +1,30 @@
+<main class="page">
+  <section class="card">
+    <h1>Render modes</h1>
+    <p class="tagline">This page is prerendered — built once, served forever.</p>
+
+    <span class="build-timestamp">rendered at: {{ renderedAt }}</span>
+
+    <div class="section">
+      <p>
+        This page uses <code>RenderMode.Prerender</code>: Angular rendered it
+        exactly once during <code>npm run build</code>, and the timestamp
+        above is frozen from that moment. Reload this page as many times as
+        you want — it never changes, because the server is handing back the
+        exact same static HTML every time.
+      </p>
+      <p>
+        Compare that to the home page, which uses
+        <code>RenderMode.Server</code> — a fresh render (and a fresh call to
+        <code>/api/health</code>) on every single request.
+      </p>
+      <p>
+        Both render modes are declared per-route in
+        <code>app.routes.server.ts</code>, so a real app can mix static
+        marketing pages with dynamic, data-driven ones freely.
+      </p>
+    </div>
+
+    <a routerLink="/" class="nav-link">← Back to the live page</a>
+  </section>
+</main>

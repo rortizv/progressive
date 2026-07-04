@@ -56,6 +56,28 @@ response type; both files are gitignored build artifacts. Add an endpoint +
 DTO in `playground-server`, regenerate, and the exact matching type/function
 shows up on the Angular side automatically.
 
+## Render ergonomics (render modes, `@defer`, ISR-style caching)
+
+- **Render mode per route** (`app.routes.server.ts`): `/` uses
+  `RenderMode.Server` (fresh SSR + a fresh `/api/health` call on every
+  request); `/about` uses `RenderMode.Prerender` (rendered once at build
+  time, served as a static file forever — reload it all you want, the
+  timestamp never changes). A real app mixes both freely, per route.
+- **`@defer`**: the home page's "Under the hood" section is
+  `@defer (on interaction(...))` — its code isn't in the initial JS bundle or
+  SSR payload, only fetched once you click the reveal button.
+- **ISR-style caching**: `GET /api/build-info` is wrapped in Nest's plain
+  `CacheInterceptor` with a 10s TTL — same trade-off as Next.js's Incremental
+  Static Regeneration, done with a framework-native interceptor instead of a
+  bespoke cache primitive.
+
+Gotcha worth knowing if you touch these: a component field like
+`new Date().toISOString()` computed directly in the constructor gets
+**recomputed on the client during hydration** (only the DOM is reused, not
+the JS instance), silently overwriting the frozen prerendered value a moment
+after load. `about-page.ts` uses Angular's `TransferState` to carry the
+server-computed value across the hydration boundary instead.
+
 ## Production build & run
 
 ```sh

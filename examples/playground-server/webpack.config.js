@@ -29,6 +29,8 @@ module.exports = {
         '@nestjs/core',
         '@nestjs/platform-fastify',
         '@nestjs/swagger',
+        '@nestjs/cache-manager',
+        'cache-manager',
         '@fastify/static',
         'fastify',
         'reflect-metadata',

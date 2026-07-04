@@ -165,7 +165,7 @@ progressive/
 | 1 | Extraer el pegamento a `@progressive/ssr-nest` | — | ✅ **hecho** (falta 1ª publicación npm) |
 | 2 | Dev server con HMR (`npm run dev`) | — | ✅ **hecho** (dos procesos + proxy, ver nota) |
 | 3 | Puente tipado front↔back (`@nestjs/swagger` + orval) | — | ✅ **hecho** (falta `@ServerAction`, ver 8c) |
-| 4 | Ergonomía de render (render mode por ruta, `@defer`, streaming, caché) | — | Pendiente |
+| 4 | Ergonomía de render (render mode por ruta, `@defer`, caché estilo ISR) | — | ✅ **hecho** (streaming SSR queda pendiente) |
 | 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | Pendiente |
 | 6 | Docs, plantillas, decisión toolkit-sobre-Nx vs. CLI propio | — | Pendiente |
 
@@ -270,6 +270,49 @@ mencionado en el plan original (que un provider Nest genere directamente el
 injectable Angular, sin pasar por OpenAPI) es un diferenciador propio de
 Progressive, pero es un salto de complejidad mayor — queda anotado como
 evolución futura de esta misma Fase 3, no bloquea el roadmap.
+
+---
+
+## 8d. Fase 4 — ergonomía de render ✅ hecho
+
+Tres piezas, cada una demostrada en vivo en el playground:
+
+**1. Render mode por ruta.** El playground pasó de una sola página a dos, para
+poder contrastar de verdad: `/` usa `RenderMode.Server` (SSR fresco + llamada
+fresca a `/api/health` en cada request) y `/about` usa `RenderMode.Prerender`
+(renderizado una sola vez en `npm run build`, servido después como archivo
+estático). Ambos se declaran lado a lado en `app.routes.server.ts`.
+
+**2. `@defer`.** La sección "Under the hood" de la home usa
+`@defer (on interaction(...))` — su código no viaja en el bundle inicial ni en
+el HTML del SSR, solo se pide al hacer clic. Verificado viendo la petición del
+chunk extra en la pestaña de red, disparada únicamente tras el clic.
+
+**3. Caché estilo ISR.** `GET /api/build-info` usa el `CacheInterceptor` nativo
+de Nest (`@nestjs/cache-manager`) con TTL de 10s — mismo trade-off que el ISR
+de Next.js, sin inventar un primitivo de caché propio. Verificado: valor igual
+en clics rápidos consecutivos, valor distinto pasados los 10s.
+
+**El bug real que apareció al construir el demo de prerender (vale la pena
+recordarlo):** un campo de componente calculado directo en el constructor
+(`new Date().toISOString()`) se **recalcula en el cliente durante la
+hidratación** — Angular reutiliza el DOM, pero igual construye la instancia
+JS del componente de nuevo en el cliente, y ese campo plano no tiene ningún
+mecanismo que lo "congele" cruzando la frontera servidor→cliente. El resultado:
+el valor correcto del servidor se veía una fracción de segundo y luego se
+sobreescribía con un valor nuevo calculado en el navegador. Se resolvió con
+`TransferState`/`makeStateKey` (`about-page.ts`): el servidor calcula y guarda
+el valor una vez, el cliente lo lee de ahí en vez de recalcularlo.
+
+**Otro hallazgo menor:** el primer `(click)="..."` real del proyecto hizo
+fallar el build — `strictTemplates` necesita tipos DOM para inferir el tipo
+del evento, y `tsconfig.base.json` (compartido con proyectos Node) solo tenía
+`"lib": ["es2022"]`. Se agregó `"dom"` en `examples/playground-web/tsconfig.json`
+(no en la base, para no filtrar globals de navegador a los proyectos Nest).
+
+**Pendiente, no bloqueante:** streaming SSR (Angular ya lo soporta vía
+`@defer` + hidratación incremental, pero no se armó un ejemplo dedicado que
+muestre el streaming de la respuesta HTTP en sí).
 
 ---
 
@@ -396,6 +439,10 @@ Repo: **https://github.com/rortizv/progressive**
   `examples/playground-web/src/app/api/generated.ts` (funciones `httpResource`
   tipadas) a partir del DTO real del backend. Cero tipos duplicados a mano.
   Verificado en vivo (build de producción + tests unitarios). Detalle en 8c.
+- [x] 🤖 **Fase 4 cerrada:** render mode por ruta (`/` SSR vs. `/about`
+  prerender), `@defer (on interaction)`, y caché estilo ISR en
+  `/api/build-info` con `CacheInterceptor`. Los tres verificados en vivo.
+  Streaming SSR queda pendiente (no bloqueante). Detalle en 8d.
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.
