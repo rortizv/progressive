@@ -40,6 +40,22 @@ depending on them would break on any Angular patch release. Two processes +
 a proxy is the same trade-off Nx itself makes for mixed Angular/Node
 workspaces, and it costs nothing in production (see below).
 
+## Typed API bridge (no manual HTTP types)
+
+`npm run generate:api` (also runs automatically before `build` and `dev`) does:
+
+1. Boots the Nest app just long enough to build its OpenAPI document via
+   `@nestjs/swagger` (`examples/playground-server/scripts/generate-openapi.ts`),
+   writing `examples/playground-server/openapi.json`.
+2. Runs [orval](https://orval.dev) (`orval.config.ts`) against that spec to
+   generate `examples/playground-web/src/app/api/generated.ts` — typed
+   `httpResource`-based functions, one per Nest endpoint.
+
+The Angular side never hand-writes a `fetch`/`HttpClient` call or duplicates a
+response type; both files are gitignored build artifacts. Add an endpoint +
+DTO in `playground-server`, regenerate, and the exact matching type/function
+shows up on the Angular side automatically.
+
 ## Production build & run
 
 ```sh

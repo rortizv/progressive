@@ -164,7 +164,7 @@ progressive/
 | **0** | Spike: Nest + Angular SSR en un proceso (`playground-web` + `playground-server`) | App Runner | ✅ **hecho, corriendo local** |
 | 1 | Extraer el pegamento a `@progressive/ssr-nest` | — | ✅ **hecho** (falta 1ª publicación npm) |
 | 2 | Dev server con HMR (`npm run dev`) | — | ✅ **hecho** (dos procesos + proxy, ver nota) |
-| 3 | Puente tipado front↔back (OpenAPI/orval o tRPC; luego `@ServerAction`) | npm | Pendiente |
+| 3 | Puente tipado front↔back (`@nestjs/swagger` + orval) | — | ✅ **hecho** (falta `@ServerAction`, ver 8c) |
 | 4 | Ergonomía de render (render mode por ruta, `@defer`, streaming, caché) | — | Pendiente |
 | 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | Pendiente |
 | 6 | Docs, plantillas, decisión toolkit-sobre-Nx vs. CLI propio | — | Pendiente |
@@ -230,6 +230,46 @@ parche de Angular — no es una base seria para un framework.
 página) y reinicio automático de Nest al cambiar código del backend (ambos
 confirmados en vivo). En producción esto no cuesta nada — `npm start` sigue siendo
 el único proceso real de la sección 8.
+
+---
+
+## 8c. Fase 3 — puente tipado front↔back ✅ hecho
+
+**Decisión: orval, no tRPC.** El plan original dejaba abiertas las dos opciones.
+Se eligió orval porque preserva NestJS "de verdad" — controllers, DTOs,
+decoradores, exactamente como ya estaban — y solo automatiza la generación de
+tipos a partir de eso. tRPC habría significado introducir su propio paradigma de
+routers/procedures en paralelo a los controllers, compitiendo con el
+posicionamiento de Progressive ("el nicho es NestJS real").
+
+**Cómo funciona (`npm run generate:api`, también corre antes de `build`/`dev`):**
+1. `examples/playground-server/scripts/generate-openapi.ts` arranca Nest **sin
+   escuchar puerto** (rápido, sin red) y usa `@nestjs/swagger` para construir el
+   documento OpenAPI → `examples/playground-server/openapi.json`.
+2. `orval.config.ts` lee ese JSON y genera
+   `examples/playground-web/src/app/api/generated.ts`.
+
+**El hallazgo que cambió el diseño:** orval ya sabe generar funciones basadas en
+`httpResource` (`override.angular.retrievalClient: 'httpResource'`), el mismo
+patrón de signals que ya usábamos a mano desde la Fase 0 — no hubo que elegir
+entre "lo que ya funciona" y "lo generado", son lo mismo. El componente pasó de
+`httpResource<HealthResponse>(() => '/api/health')` (interfaz duplicada a mano) a
+`appControllerGetHealthResource()` (tipo `HealthDto` generado desde el DTO real
+del backend, cero duplicación).
+
+**Ambos archivos generados (`openapi.json` y `generated.ts`) están en
+`.gitignore`** — son artefactos derivados, igual que `dist/`, no código fuente.
+
+**Deuda encontrada de paso (no relacionada, pero bloqueaba verificar el test):**
+`tsconfig.spec.json` de `playground-web` nunca había corrido (`nx test` no se
+había usado en todo el proyecto hasta ahora) y le faltaba `"lib": ["dom"]` — se
+agregó solo ahí, sin tocar la config de build real.
+
+**Pendiente, explícitamente fuera de esta pasada:** el decorador `@ServerAction()`
+mencionado en el plan original (que un provider Nest genere directamente el
+injectable Angular, sin pasar por OpenAPI) es un diferenciador propio de
+Progressive, pero es un salto de complejidad mayor — queda anotado como
+evolución futura de esta misma Fase 3, no bloquea el roadmap.
 
 ---
 
@@ -352,6 +392,10 @@ Repo: **https://github.com/rortizv/progressive**
 - [x] 🤖 **Fase 2 cerrada:** `npm run dev` — Angular (`:4200`, HMR real) + Nest
   (`:3000`) en paralelo, proxy vía `proxy.config.json`. HMR de UI y reinicio
   automático de Nest verificados en vivo (sección 8b).
+- [x] 🤖 **Fase 3 cerrada:** `@nestjs/swagger` + orval generan
+  `examples/playground-web/src/app/api/generated.ts` (funciones `httpResource`
+  tipadas) a partir del DTO real del backend. Cero tipos duplicados a mano.
+  Verificado en vivo (build de producción + tests unitarios). Detalle en 8c.
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.

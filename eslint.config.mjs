@@ -5,7 +5,8 @@ export default [
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc'],
+    // src/app/api/generated.ts is orval output ("Do not edit manually")
+    ignores: ['**/dist', '**/out-tsc', '**/api/generated.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],

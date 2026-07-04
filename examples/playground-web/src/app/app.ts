@@ -1,10 +1,5 @@
 import { Component } from '@angular/core';
-import { httpResource } from '@angular/common/http';
-
-interface HealthResponse {
-  status: string;
-  timestamp: string;
-}
+import { appControllerGetHealthResource } from './api/generated';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +7,5 @@ interface HealthResponse {
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly health = httpResource<HealthResponse>(
-    () => '/api/health',
-  );
+  protected readonly health = appControllerGetHealthResource();
 }

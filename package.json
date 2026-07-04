@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "nx run-many -t build -p playground-web,playground-server",
+    "generate:api": "SWC_NODE_PROJECT=examples/playground-server/tsconfig.app.json node -r @swc-node/register examples/playground-server/scripts/generate-openapi.ts && orval --config orval.config.ts",
+    "build": "npm run generate:api && nx run-many -t build -p playground-web,playground-server",
     "start": "node dist/examples/playground-server/main.js",
-    "dev": "concurrently -n web,server -c blue,magenta \"NG_ALLOWED_HOSTS=localhost nx run playground-web:serve\" \"PORT=3000 nx run playground-server:serve\""
+    "dev": "npm run generate:api && concurrently -n web,server -c blue,magenta \"NG_ALLOWED_HOSTS=localhost nx run playground-web:serve\" \"PORT=3000 nx run playground-server:serve\""
   },
   "private": true,
   "devDependencies": {
@@ -39,6 +40,7 @@
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.1.0",
     "nx": "23.0.1",
+    "orval": "^8.20.0",
     "prettier": "^3.8.1",
     "tslib": "^2.3.0",
     "typescript": "~5.9.3",
@@ -67,6 +69,9 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-fastify": "^11.1.27",
+    "@nestjs/swagger": "^11.4.5",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "~7.8.0"
   },
