@@ -13,6 +13,10 @@ An Nx monorepo with:
   One function, `mountAngularSsr(app, { angularDistPath })`, wires a NestJS
   (Fastify) app to serve a built Angular SSR app for every route its own
   controllers don't own.
+- **`packages/create-progressive`** — the scaffolder. Once published, a dev
+  runs `npm create progressive@latest my-app` and gets a trimmed copy of
+  `examples/playground-web` + `playground-server` (Angular SSR + Nest + the
+  typed API bridge), renamed and ready for `npm install && npm run dev`.
 - **`examples/playground-web`** — Angular 21.2, SSR, zoneless. Builds to
   `dist/examples/playground-web/{browser,server}`.
 - **`examples/playground-server`** — NestJS 11 + Fastify. The one process

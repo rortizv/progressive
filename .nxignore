@@ -1,0 +1,4 @@
+# Static scaffold content shipped by create-progressive — contains its own
+# project.json/package.json files that must NOT be treated as real projects
+# in this workspace's Nx graph.
+packages/create-progressive/template

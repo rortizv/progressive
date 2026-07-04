@@ -166,7 +166,7 @@ progressive/
 | 2 | Dev server con HMR (`npm run dev`) | — | ✅ **hecho** (dos procesos + proxy, ver nota) |
 | 3 | Puente tipado front↔back (`@nestjs/swagger` + orval) | — | ✅ **hecho** (falta `@ServerAction`, ver 8c) |
 | 4 | Ergonomía de render (render mode por ruta, `@defer`, caché estilo ISR) | — | ✅ **hecho** (streaming SSR queda pendiente) |
-| 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | Pendiente |
+| 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | ✅ **hecho**, verificado end-to-end |
 | 6 | Decisión estratégica: Nx invisible vs. CLI propio | — | ✅ **hecho** — Nx por debajo, fachada propia por encima |
 
 > **npm entra en Fase 1** (primer paquete real que publicar). En Fase 0 solo hacemos
@@ -353,6 +353,65 @@ Angular↔Nest (Fases 0-4), no competir con Nx como orquestador de builds.
 
 ---
 
+## 8f. Fase 5 — `create-progressive` ✅ hecho
+
+**Qué es:** `packages/create-progressive` es un paquete publicable con un
+binario (`bin: create-progressive`) que copia una plantilla propia a un
+directorio nuevo. Gracias a la convención de npm, una vez publicado, un dev
+podrá correr `npm create progressive@latest mi-app` y obtener el mismo
+proyecto que hemos venido construyendo (Angular SSR + NestJS + el puente
+tipado), listo para `npm install && npm run dev`.
+
+**La plantilla (`packages/create-progressive/template/`) es una copia
+recortada de nuestro propio `examples/playground-web` + `playground-server`**,
+no algo escrito desde cero — la fuente de verdad es el código que ya probamos
+en este mismo repo. Recortes hechos a propósito para un starter mínimo (no
+"vitrina de features"): se quitaron la página `/about` (demo de prerender), la
+sección `@defer`/caché ISR del home, y el módulo de caché — quedan solo el
+home con logos + estado del API + próximos pasos. Renombres:
+`examples/playground-web` → `apps/web`, `examples/playground-server` →
+`apps/server`; y `@progressive/ssr-nest` pasa de ser el código fuente local
+del monorepo a una dependencia npm real en el `package.json` generado.
+
+**Cómo funciona el CLI:** sin dependencias de prompts — toma el nombre como
+argumento, lo sanitiza (minúsculas, espacios→guiones), copia la plantilla con
+`fs` plano reemplazando el token `__APP_NAME__` en archivos de texto (binarios
+como `.ico`/`.svg` se copian byte a byte), e imprime los próximos pasos.
+
+**Bug real encontrado (y arreglado) construyendo esto — vale la pena
+recordarlo:** Nx escanea **todo el repo** buscando archivos `project.json`,
+sin importar en qué carpeta estén. Como la plantilla trae sus propios
+`apps/web/project.json` y `apps/server/project.json` (para que el proyecto
+generado sea un workspace Nx válido), Nx los registraba como si fueran
+proyectos REALES de *este* repo (`nx show projects` mostraba `web`, `server`
+e incluso `__APP_NAME__`), rompiendo `nx run-many -t build` porque intentaba
+construirlos con rutas que no existen aquí. Se resolvió con un archivo
+`.nxignore` en la raíz (`packages/create-progressive/template`) — excluye la
+carpeta del *grafo de proyectos* de Nx sin dejar de trackearla en git (a
+diferencia de `.gitignore`, que sí la ocultaría de git). Por separado, el
+`eslint.config.mjs` del propio paquete también tuvo que excluir `template/**`
+explícitamente, porque `.nxignore` solo afecta a Nx, no al glob que ESLint usa
+para encontrar archivos.
+
+**Cómo se verificó de punta a punta:** se corrió el CLI compilado contra un
+directorio temporal, se instaló con `npm install`, y se corrió
+`npm run build` + el proceso resultante — confirmando SSR real (`<title>` y
+`<h1>` con el nombre correcto) y `/api/health` respondiendo. Para esta prueba,
+`@progressive/ssr-nest` (aún no publicada) se instaló desde un tarball local
+(`npm pack` + `file:./algo.tgz`) — **no** desde un `file:` a una carpeta
+cruda: enlazar una carpeta hace que Node resuelva sus `require()` internos
+subiendo por el árbol de directorios de *este* monorepo, encontrando una
+copia distinta de `@nestjs/common` y rompiendo el `instanceof` del
+`AngularFallbackFilter` (el filtro dejaba de capturar el 404 y todo caía al
+manejador genérico de Nest). Con el tarball, `@progressive/ssr-nest` queda
+en su propia carpeta real dentro de `node_modules` del proyecto de prueba,
+igual que pasaría con una instalación real desde npm — sin ese problema.
+**Importante para cuando prueben la Fase 1 antes de publicar de verdad:**
+usar `npm pack` (o el registro local Verdaccio ya configurado en
+`.verdaccio/`), nunca un `file:` a una carpeta cruda.
+
+---
+
 ## 9. Desplegar una APP en AWS App Runner (Artefacto B)
 
 > Esto es para la app `playground-server` (que aloja también a `playground-web`), y
@@ -485,12 +544,18 @@ Repo: **https://github.com/rortizv/progressive**
   fachada propia (`npm run dev/build/start/generate:api`, y a futuro un CLI
   delgado). Se descarta explícitamente reimplementar el motor de Nx. Detalle
   en 8e.
+- [x] 🤖 **Fase 5 cerrada:** `packages/create-progressive` — CLI publicable
+  que copia una plantilla (recorte de nuestro propio playground) a un
+  directorio nuevo. Verificado end-to-end: scaffold → `npm install` →
+  `npm run build` → servidor real respondiendo con SSR y `/api/health`.
+  Bug de Nx encontrado y arreglado en el camino (`.nxignore`, ver 8f).
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.
 >
-> **Único paso pendiente del roadmap core:** Fase 5 (`create-progressive`, el
-> scaffolder). Todo lo demás (Fases 0-4 y 6) está cerrado.
+> **Todo el roadmap original (Fases 0-6) está cerrado.** Lo único que falta
+> para que `npm create progressive@latest` funcione de verdad en el mundo real
+> es la publicación en npm (sección 10.2/10.3, pausada por decisión tuya).
 
 ### Nota técnica de la extracción (Fase 1)
 

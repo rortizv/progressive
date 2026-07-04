@@ -1,0 +1,38 @@
+{
+  "name": "create-progressive",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/create-progressive/src",
+  "projectType": "library",
+  "release": {
+    "version": {
+      "manifestRootsToUpdate": ["dist/{projectRoot}"],
+      "currentVersionResolver": "git-tag",
+      "fallbackCurrentVersionResolver": "disk"
+    }
+  },
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/create-progressive",
+        "main": "packages/create-progressive/src/index.ts",
+        "tsConfig": "packages/create-progressive/tsconfig.lib.json",
+        "assets": [
+          "packages/create-progressive/*.md",
+          {
+            "input": "packages/create-progressive/template",
+            "glob": "**/*",
+            "output": "template"
+          }
+        ]
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    }
+  }
+}
