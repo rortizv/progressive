@@ -74,26 +74,27 @@ cada una con su propio "deploy":
 
 ---
 
-## 3. Nombres en npm (verificado el 2026-07-03)
+## 3. Nombres en npm (actualizado el 2026-07-04 — ya publicado)
 
-El nombre pelado `progressive` en npm **ya está ocupado**. No importa: usamos scope +
-iniciador, que es la convención correcta igual.
+El nombre pelado `progressive` en npm **ya está ocupado** (de otra persona). No
+importa: usamos scope + iniciador, la convención correcta igual.
+
+**La organización `progressive` también estaba tomada** cuando llegamos a crearla de
+verdad (sección 10.2). Se creó como **`progrest`** en su lugar — por eso el scope
+real es `@progrest/*`, no `@progressive/*`. El proyecto y el CLI se siguen llamando
+"Progressive"; solo el scope de npm quedó distinto a la marca (le pasa a más
+proyectos de los que parece — nombres cortos se agotan rápido).
 
 | Paquete | Para qué | Estado |
 |---------|----------|--------|
-| `create-progressive` | El "iniciador": habilita `npm create progressive@latest` | ✅ **Libre** |
-| `@progressive/core` | Núcleo de la librería | ✅ Libre* |
-| `@progressive/ssr-nest` | Módulo que monta Angular SSR dentro de Nest | ✅ Libre* |
-
-\* Falta confirmar que el **scope/organización `@progressive`** sea reclamable en npm
-(🛑 paso humano, sección 9). Si estuviera tomada, alternativas: `@progressivejs/*` o
-usar tu scope de usuario `@turusuario/*`.
+| `create-progressive` | El "iniciador": habilita `npm create progressive@latest` | ✅ **Publicado** (sin scope) |
+| `@progrest/ssr-nest` | Módulo que monta Angular SSR dentro de Nest | 🔜 Org creada, falta publicar |
 
 **Cómo funciona `npm create progressive`:** por convención de npm, `npm create X`
-ejecuta el paquete llamado `create-X`. Como `create-progressive` está libre, el dev
-podrá escribir `npm create progressive@latest mi-app` aunque el paquete pelado
-`progressive` sea de otra persona (son paquetes diferentes). Igual que `npm create
-vite` o `create-next-app`.
+ejecuta el paquete llamado `create-X`. Como `create-progressive` está publicado, el
+dev ya puede escribir `npm create progressive@latest mi-app` de verdad — aunque el
+paquete pelado `progressive` sea de otra persona (son paquetes diferentes). Igual que
+`npm create vite` o `create-next-app`.
 
 ---
 
@@ -138,9 +139,8 @@ para desarrollarla y probarla (dogfood):
 ```
 progressive/
 ├── packages/                 ← se PUBLICAN en npm (Artefacto A)
-│   ├── create-progressive/   ← el iniciador (Fase 5)
-│   ├── core/                 ← @progressive/core
-│   └── ssr-nest/             ← @progressive/ssr-nest (Fase 1)
+│   ├── create-progressive/   ← el iniciador (Fase 5) ✅ publicado
+│   └── ssr-nest/             ← @progrest/ssr-nest (Fase 1)
 ├── examples/
 │   ├── playground-web/       ← Angular SSR (build con esbuild/Vite propio de Angular)
 │   └── playground-server/    ← NestJS+Fastify; el proceso que REALMENTE corre y
@@ -162,7 +162,7 @@ progressive/
 | Fase | Qué entrega | Deploy asociado | Estado |
 |------|-------------|-----------------|--------|
 | **0** | Spike: Nest + Angular SSR en un proceso (`playground-web` + `playground-server`) | App Runner | ✅ **hecho, corriendo local** |
-| 1 | Extraer el pegamento a `@progressive/ssr-nest` | — | ✅ **hecho** (falta 1ª publicación npm) |
+| 1 | Extraer el pegamento a `@progrest/ssr-nest` | — | ✅ **hecho** (falta 1ª publicación npm) |
 | 2 | Dev server con HMR (`npm run dev`) | — | ✅ **hecho** (dos procesos + proxy, ver nota) |
 | 3 | Puente tipado front↔back (`@nestjs/swagger` + orval) | — | ✅ **hecho** (falta `@ServerAction`, ver 8c) |
 | 4 | Ergonomía de render (render mode por ruta, `@defer`, caché estilo ISR) | — | ✅ **hecho** (streaming SSR queda pendiente) |
@@ -370,7 +370,7 @@ en este mismo repo. Recortes hechos a propósito para un starter mínimo (no
 sección `@defer`/caché ISR del home, y el módulo de caché — quedan solo el
 home con logos + estado del API + próximos pasos. Renombres:
 `examples/playground-web` → `apps/web`, `examples/playground-server` →
-`apps/server`; y `@progressive/ssr-nest` pasa de ser el código fuente local
+`apps/server`; y `@progrest/ssr-nest` pasa de ser el código fuente local
 del monorepo a una dependencia npm real en el `package.json` generado.
 
 **Cómo funciona el CLI:** sin dependencias de prompts — toma el nombre como
@@ -397,13 +397,13 @@ para encontrar archivos.
 directorio temporal, se instaló con `npm install`, y se corrió
 `npm run build` + el proceso resultante — confirmando SSR real (`<title>` y
 `<h1>` con el nombre correcto) y `/api/health` respondiendo. Para esta prueba,
-`@progressive/ssr-nest` (aún no publicada) se instaló desde un tarball local
+`@progrest/ssr-nest` (aún no publicada) se instaló desde un tarball local
 (`npm pack` + `file:./algo.tgz`) — **no** desde un `file:` a una carpeta
 cruda: enlazar una carpeta hace que Node resuelva sus `require()` internos
 subiendo por el árbol de directorios de *este* monorepo, encontrando una
 copia distinta de `@nestjs/common` y rompiendo el `instanceof` del
 `AngularFallbackFilter` (el filtro dejaba de capturar el 404 y todo caía al
-manejador genérico de Nest). Con el tarball, `@progressive/ssr-nest` queda
+manejador genérico de Nest). Con el tarball, `@progrest/ssr-nest` queda
 en su propia carpeta real dentro de `node_modules` del proyecto de prueba,
 igual que pasaría con una instalación real desde npm — sin ese problema.
 **Importante para cuando prueben la Fase 1 antes de publicar de verdad:**
@@ -481,24 +481,29 @@ cerrar ese hueco de seguridad.
 Aquí "desplegar" = `npm publish`. **No es App Runner.**
 
 ### 10.1. Qué publicaremos
-- Fase 1: `@progressive/ssr-nest` (el módulo runtime del pegamento).
+- Fase 1: `@progrest/ssr-nest` (el módulo runtime del pegamento).
 - Fase 5: `create-progressive` (para `npm create progressive@latest`).
 
-### 10.2. Preparativos (una sola vez)
-🛑 **npm-1:** crea cuenta en https://npmjs.com → verifica email → **activa 2FA**.
-🛑 **npm-2:** crea una **organización gratis** llamada `progressive` en
-   https://www.npmjs.com/org/create (esto habilita el scope `@progressive/*`). Si el
-   nombre está tomado, avísame y usamos `@progressivejs` o tu scope de usuario.
-🤖 **npm-3:** yo dejo cada `package.json` listo (`name`, `version`, `exports`,
-   `files`, y `publishConfig: { access: "public" }` para que el scoped sea público).
+### 10.2. Preparativos (una sola vez) ✅ hecho
+🛑 **npm-1:** ✅ cuenta creada en https://npmjs.com (`rafael289`, GitHub `@rortizv`).
+🛑 **npm-2:** ✅ organización creada — `progressive` estaba tomada, quedó **`progrest`**
+   (habilita el scope `@progrest/*`). Por eso `@progressive/ssr-nest` se renombró a
+   `@progrest/ssr-nest` en todo el código.
+🤖 **npm-3:** ✅ cada `package.json` listo (`name`, `version`,
+   `publishConfig: { access: "public" }` para que el scoped sea público).
 
-### 10.3. Primera publicación (manual, sencilla)
-🛑 **pub-1:** en tu terminal, `npm login` (te pedirá usuario/clave/2FA).
-🤖 **pub-2:** yo corro el build de los paquetes.
-🛑 **pub-3:** `npm publish --access public` (el `--access public` es obligatorio la
-   primera vez para paquetes con scope). O `nx release` que lo automatiza en monorepo.
-✅ Resultado: tu paquete queda visible en `https://www.npmjs.com/package/@progressive/ssr-nest`
-   y cualquiera puede `npm i @progressive/ssr-nest`.
+### 10.3. Primera publicación
+🛑 **pub-1:** ✅ `npm login` hecho desde la terminal (verificado con `npm whoami`).
+🤖 **pub-2:** ✅ `create-progressive@0.0.1` publicado y verificado end-to-end
+   (`npm create progressive@latest` funciona de verdad, descargando del registro real).
+🛑 **pub-3 (pendiente):** publicar `@progrest/ssr-nest --access public` — el
+   `--access public` es obligatorio la primera vez para paquetes con scope.
+✅ Cuando se haga: tu paquete queda visible en
+   `https://www.npmjs.com/package/@progrest/ssr-nest` y cualquiera puede
+   `npm i @progrest/ssr-nest`. En ese momento, un `npm create progressive@latest`
+   fresco también deja de fallar en el `npm install` (hoy fallaría, porque el
+   `package.json` generado depende de `@progrest/ssr-nest` y esa dependencia
+   todavía no existe en el registro).
 
 ### 10.4. Automatización futura (opcional)
 Más adelante: **GitHub Actions + npm automation token** para publicar automáticamente
@@ -522,7 +527,7 @@ Repo: **https://github.com/rortizv/progressive**
   consumidores; no es tarea del creador).
 - [x] 🤖 Primer push a GitHub.
 - [x] **Fase 0 cerrada.**
-- [x] 🤖 `@progressive/ssr-nest` extraída como librería publicable en
+- [x] 🤖 `@progrest/ssr-nest` extraída como librería publicable en
   `packages/ssr-nest`, con API pública `mountAngularSsr(app, { angularDistPath })`.
   `playground-server` ya la consume (no más código duplicado) y se verificó
   funcionando idéntico al spike de Fase 0. Push hecho.
@@ -561,10 +566,10 @@ Repo: **https://github.com/rortizv/progressive**
 
 `@nx/webpack`'s `NxAppWebpackPlugin` externaliza por defecto **todo** paquete de
 terceros (`externalDependencies: 'all'`), asumiendo que vive en `node_modules` con
-un build ya compilado. Pero `@progressive/ssr-nest`, al no estar publicada aún, solo
+un build ya compilado. Pero `@progrest/ssr-nest`, al no estar publicada aún, solo
 existe como symlink de npm workspaces apuntando a su código TypeScript fuente (sin
 compilar) — así que dejarla externalizada rompe el `require()` en tiempo de
 ejecución. Se resolvió listando explícitamente en `externalDependencies` solo los
 paquetes de terceros reales (`@nestjs/*`, `fastify`, etc.), dejando fuera de esa
-lista a `@progressive/ssr-nest` para que se empaquete inline desde su fuente. Una vez
+lista a `@progrest/ssr-nest` para que se empaquete inline desde su fuente. Una vez
 publicada en npm de verdad, este workaround deja de ser necesario.

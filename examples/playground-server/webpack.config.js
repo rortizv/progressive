@@ -20,7 +20,7 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMap: true,
-      // Default externalizes ALL third-party packages, but `@progressive/ssr-nest`
+      // Default externalizes ALL third-party packages, but `@progrest/ssr-nest`
       // is a workspace-only library (not yet published) whose node_modules symlink
       // points at its unbuilt TS source — so it must stay OUT of this list to be
       // bundled inline from source instead of left as an unresolvable `require()`.

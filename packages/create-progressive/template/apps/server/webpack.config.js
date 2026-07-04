@@ -25,7 +25,7 @@ module.exports = {
         '@nestjs/core',
         '@nestjs/platform-fastify',
         '@nestjs/swagger',
-        '@progressive/ssr-nest',
+        '@progrest/ssr-nest',
         '@fastify/static',
         'fastify',
         'reflect-metadata',

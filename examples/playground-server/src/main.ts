@@ -5,7 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { join } from 'node:path';
-import { mountAngularSsr } from '@progressive/ssr-nest';
+import { mountAngularSsr } from '@progrest/ssr-nest';
 import { AppModule } from './app/app.module';
 
 // playground-web (Angular) builds into a sibling folder under the shared

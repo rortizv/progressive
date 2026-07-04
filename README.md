@@ -9,7 +9,7 @@ Full plan and roadmap: [progressive_plan.md](./progressive_plan.md).
 
 An Nx monorepo with:
 
-- **`packages/ssr-nest`** — `@progressive/ssr-nest`, the publishable library.
+- **`packages/ssr-nest`** — `@progrest/ssr-nest`, the publishable library.
   One function, `mountAngularSsr(app, { angularDistPath })`, wires a NestJS
   (Fastify) app to serve a built Angular SSR app for every route its own
   controllers don't own.
@@ -21,7 +21,7 @@ An Nx monorepo with:
   `dist/examples/playground-web/{browser,server}`.
 - **`examples/playground-server`** — NestJS 11 + Fastify. The one process
   that actually runs in production: serves `/api/*` itself and uses
-  `@progressive/ssr-nest` to host `playground-web`'s SSR engine for every
+  `@progrest/ssr-nest` to host `playground-web`'s SSR engine for every
   other route.
 
 ## Development (hot reload)

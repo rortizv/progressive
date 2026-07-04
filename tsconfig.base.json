@@ -14,7 +14,7 @@
     "strict": true,
     "target": "es2022",
     "paths": {
-      "@progressive/ssr-nest": ["./packages/ssr-nest/src/index.ts"],
+      "@progrest/ssr-nest": ["./packages/ssr-nest/src/index.ts"],
       "create-progressive": ["./packages/create-progressive/src/index.ts"]
     }
   }

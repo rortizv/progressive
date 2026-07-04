@@ -7,7 +7,7 @@ Built with [Progressive](https://github.com/rortizv/progressive) — Angular
 
 - **`apps/web`** — Angular 21.2, SSR, zoneless.
 - **`apps/server`** — NestJS 11 + Fastify. The one process that actually runs
-  in production: serves `/api/*` itself and uses `@progressive/ssr-nest` to
+  in production: serves `/api/*` itself and uses `@progrest/ssr-nest` to
   host `apps/web`'s SSR engine for every other route.
 
 ## Development (hot reload)

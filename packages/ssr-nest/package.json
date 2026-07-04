@@ -1,5 +1,5 @@
 {
-  "name": "@progressive/ssr-nest",
+  "name": "@progrest/ssr-nest",
   "version": "0.0.1",
   "type": "commonjs",
   "main": "./src/index.js",
