@@ -167,7 +167,7 @@ progressive/
 | 3 | Puente tipado front↔back (`@nestjs/swagger` + orval) | — | ✅ **hecho** (falta `@ServerAction`, ver 8c) |
 | 4 | Ergonomía de render (render mode por ruta, `@defer`, caché estilo ISR) | — | ✅ **hecho** (streaming SSR queda pendiente) |
 | 5 | `create-progressive` → `npm create progressive@latest` funciona | npm | Pendiente |
-| 6 | Docs, plantillas, decisión toolkit-sobre-Nx vs. CLI propio | — | Pendiente |
+| 6 | Decisión estratégica: Nx invisible vs. CLI propio | — | ✅ **hecho** — Nx por debajo, fachada propia por encima |
 
 > **npm entra en Fase 1** (primer paquete real que publicar). En Fase 0 solo hacemos
 > la app de dogfood y la desplegamos en App Runner; todavía no hay nada que publicar.
@@ -316,6 +316,43 @@ muestre el streaming de la respuesta HTTP en sí).
 
 ---
 
+## 8e. Fase 6 — decisión estratégica: Nx invisible, fachada propia ✅ hecho
+
+**La decisión:** Progressive se queda como toolkit **sobre** Nx — nunca vas a
+reimplementar el motor de build/dev-server/caché desde cero. Lo que sí se
+construye es una fachada propia para que un dev consumidor **nunca necesite
+saber que Nx existe** para el camino feliz (no escribe `nx`, no lee
+`project.json`, no aprende su vocabulario de "targets"/"executors").
+
+**Por qué (evidencia de esta misma sesión, no teoría):** para llegar hasta
+acá tuvimos que resolver el manifest privado de `AngularNodeAppEngine`, el
+truco de `import()` dinámico para cargar ESM desde un bundle CommonJS, el
+manejador 404 que Nest registra sin dar opción a evitarlo, `externalDependencies`
+de webpack, conflictos de `moduleResolution`/TS project references... Ese es
+exactamente el tipo de fricción de bajo nivel que **Nx y sus plugins
+(`@nx/angular`, `@nx/nest`) ya resuelven y mantienen actualizada** con cada
+release de Angular/Nest. Un CLI propio que oculte Nx por completo significaría
+reimplementar y sostener todo eso solo, para siempre — el tipo de compromiso
+que termina matando frameworks de mantenimiento individual.
+
+**Lo que "Nx invisible" ya significa hoy, en este mismo repo (no es trabajo
+nuevo, es nombrar lo que ya existe):** los scripts raíz `npm run dev`,
+`build`, `start` y `generate:api` (sección de arriba) ya envuelven
+`nx run-many`/`nx serve`/`nx build` — nadie necesita escribir `nx` para el
+día a día.
+
+**Evolución futura, no comprometida ahora:** un binario `bin/progressive.js`
+delgado (`progressive dev`, `progressive build`) que por dentro llame a estos
+mismos scripts o a la API programática de Nx — puro pulido cosmético de cara
+al dev consumidor, no una reescritura del motor. Candidato natural para
+cuando se arme el scaffolder `create-progressive` (Fase 5).
+
+**Descartado explícitamente:** reimplementar el bundler, el dev-server o el
+sistema de caché de Nx desde cero. El "nicho" de Progressive es el pegamento
+Angular↔Nest (Fases 0-4), no competir con Nx como orquestador de builds.
+
+---
+
 ## 9. Desplegar una APP en AWS App Runner (Artefacto B)
 
 > Esto es para la app `playground-server` (que aloja también a `playground-web`), y
@@ -443,9 +480,17 @@ Repo: **https://github.com/rortizv/progressive**
   prerender), `@defer (on interaction)`, y caché estilo ISR en
   `/api/build-info` con `CacheInterceptor`. Los tres verificados en vivo.
   Streaming SSR queda pendiente (no bloqueante). Detalle en 8d.
+- [x] 🤖 **Fase 6 cerrada:** decisión tomada — Nx se queda como motor (build,
+  dev-server, caché), invisible para el dev consumidor; Progressive aporta la
+  fachada propia (`npm run dev/build/start/generate:api`, y a futuro un CLI
+  delgado). Se descarta explícitamente reimplementar el motor de Nx. Detalle
+  en 8e.
 
 > App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
 > para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.
+>
+> **Único paso pendiente del roadmap core:** Fase 5 (`create-progressive`, el
+> scaffolder). Todo lo demás (Fases 0-4 y 6) está cerrado.
 
 ### Nota técnica de la extracción (Fase 1)
 
