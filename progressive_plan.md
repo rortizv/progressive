@@ -196,7 +196,12 @@ degrada en silencio a solo-CSR en vez de fallar), y un `import()` dinámico "esc
 de TypeScript (vía `new Function`) porque Nest compila a CommonJS pero el bundle SSR de
 Angular es ESM puro.
 
-🛑 **HUMANO hará:** los clics de App Runner (sección 9), una vez el código esté en GitHub.
+✅ **Verificación:** local, en el navegador (screenshot + consola + red), es suficiente
+para cerrar la Fase 0. **App Runner (sección 9) NO es una tarea tuya como creador del
+framework** — es la guía de despliegue que le sirve a un dev que consuma Progressive
+más adelante. Queda documentada para cuando la necesites (referenciarla en el README,
+o probarla tú mismo si algún día quieres validar el flujo completo de un consumidor),
+pero no bloquea el avance del roadmap.
 
 ---
 
@@ -306,8 +311,12 @@ Repo: **https://github.com/rortizv/progressive**
 - [x] Repo GitHub creado: https://github.com/rortizv/progressive
 - [x] 🤖 Scaffold Fase 0 (`playground-web` + `playground-server`), verificado
   funcionando localmente (SSR real, hidratación sin errores, `/api/health` en vivo).
-- [x] 🤖 `apprunner.yaml` creado.
-- [ ] 🤖 Primer push a GitHub.
-- [ ] 🛑 Configurar App Runner en la consola → app pública funcionando.
-- [ ] 🛑 Actualizar `NG_ALLOWED_HOSTS` al dominio real una vez asignado por App Runner.
-- [ ] 🤖 (Fase 1) extraer `@progressive/ssr-nest` + 🛑 preparativos npm + publicar.
+- [x] 🤖 `apprunner.yaml` creado (queda como doc de referencia para futuros
+  consumidores; no es tarea del creador).
+- [x] 🤖 Primer push a GitHub.
+- [x] **Fase 0 cerrada.**
+- [ ] 🤖 (Fase 1) extraer `@progressive/ssr-nest` como librería real + 🛑
+  preparativos npm + publicar.
+
+> App Runner (sección 9) y `NG_ALLOWED_HOSTS` con dominio real quedan en pausa: son
+> para cuando un dev despliegue SU app hecha con Progressive, no para ti ahora.
