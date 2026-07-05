@@ -6,7 +6,7 @@
     "generate:api": "SWC_NODE_PROJECT=apps/server/tsconfig.app.json node -r @swc-node/register apps/server/scripts/generate-openapi.ts && orval --config orval.config.ts",
     "build": "npm run generate:api && nx run-many -t build -p web,server",
     "start": "node dist/apps/server/main.js",
-    "dev": "npm run generate:api && concurrently -n web,server -c blue,magenta \"NG_ALLOWED_HOSTS=localhost nx run web:serve\" \"PORT=3000 nx run server:serve\""
+    "dev": "npm run generate:api && npx kill-port 4200 3000 && concurrently -n web,server -c blue,magenta \"NG_ALLOWED_HOSTS=localhost nx run web:serve\" \"PORT=3000 nx run server:serve\""
   },
   "devDependencies": {
     "@angular-devkit/core": "~21.2.0",
@@ -38,6 +38,7 @@
     "eslint-config-prettier": "^10.0.0",
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "kill-port": "^2.0.1",
     "nx": "23.0.1",
     "orval": "^8.20.0",
     "prettier": "^3.8.1",

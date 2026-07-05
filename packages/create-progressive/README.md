@@ -24,7 +24,9 @@ That's it — you get:
   `fetch`/`HttpClient` calls, no duplicated response types.
 - **HMR in dev** (`npm run dev`): Angular's own dev server on `:4200` with
   full hot reload, NestJS on `:3000`, proxied together so it feels like one
-  app on one port.
+  app on one port. `npm run dev` frees `:4200`/`:3000` first if a previous
+  run is still holding them, so re-running it never hangs waiting for a
+  port-conflict prompt.
 - An `apprunner.yaml` ready for a one-click AWS App Runner deploy.
 
 ## Why

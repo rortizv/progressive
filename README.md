@@ -29,10 +29,12 @@ npm run dev
 
 That's it. `npm run dev` opens `http://localhost:4200` with Angular's real
 dev server (full hot reload) and NestJS running alongside on `:3000`,
-proxied together — from the browser it's one app on one port. For
-production, `npm run build && npm start` gives you the real single process
-on `:3000`, ready to deploy anywhere Node.js runs (an `apprunner.yaml` is
-included for a one-click AWS App Runner setup).
+proxied together — from the browser it's one app on one port. It also frees
+those two ports first if a previous run is still holding them, so re-running
+`npm run dev` never hangs waiting on a port-conflict prompt. For production,
+`npm run build && npm start` gives you the real single process on `:3000`,
+ready to deploy anywhere Node.js runs (an `apprunner.yaml` is included for a
+one-click AWS App Runner setup).
 
 See [`create-progressive`'s README](./packages/create-progressive/README.md)
 for what the generated project looks like, and
