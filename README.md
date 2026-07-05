@@ -5,100 +5,96 @@
   <img src="examples/playground-web/public/nestjs.svg" alt="NestJS" height="48" />
 </p>
 
-Angular (SSR) + NestJS in a single repo, single Node.js process — the idea of
-Next.js for the Angular + Nest ecosystem.
+**The Next.js idea, for Angular + NestJS.** Next.js works because React and
+its bundler are one product — pages, API routes, and rendering all live in a
+single app, a single process, a single deploy. Angular and NestJS were never
+designed together, so nobody gets that experience... until now.
 
-## What's here
+Progressive is the missing glue: it mounts Angular's server-side rendering
+engine directly inside a NestJS (Fastify) server. One repo, one build, and
+in production **one Node.js process** serves your API *and* your rendered
+pages — no separate front-end host, no CORS, no second server to deploy.
 
-An Nx monorepo with:
+You get real NestJS underneath (controllers, DI, guards, modules — not a
+stripped-down backend), Angular SSR with zoneless change detection, and a
+typed bridge between them so your API's shapes show up in Angular
+automatically, with no hand-written HTTP client code.
 
-- **`packages/ssr-nest`** — `@progrest/ssr-nest`, the publishable library.
-  One function, `mountAngularSsr(app, { angularDistPath })`, wires a NestJS
-  (Fastify) app to serve a built Angular SSR app for every route its own
-  controllers don't own.
-- **`packages/create-progressive`** — the scaffolder. Once published, a dev
-  runs `npm create progressive@latest my-app` and gets a trimmed copy of
-  `examples/playground-web` + `playground-server` (Angular SSR + Nest + the
-  typed API bridge), renamed and ready for `npm install && npm run dev`.
-- **`examples/playground-web`** — Angular 21.2, SSR, zoneless. Builds to
-  `dist/examples/playground-web/{browser,server}`.
-- **`examples/playground-server`** — NestJS 11 + Fastify. The one process
-  that actually runs in production: serves `/api/*` itself and uses
-  `@progrest/ssr-nest` to host `playground-web`'s SSR engine for every
-  other route.
-
-## Development (hot reload)
+## Quick start
 
 ```sh
+npm create progressive@latest my-app
+cd my-app
 npm install
 npm run dev
 ```
 
-This runs Angular's own dev server (with full HMR) on `http://localhost:4200`
-and NestJS on `http://localhost:3000` side by side. Angular's `proxy.config.json`
-forwards `/api/*` to Nest, so from the browser it feels like one app on one
-port — open `http://localhost:4200`. Editing UI code hot-reloads instantly;
-editing Nest code rebuilds and restarts the API process automatically.
+That's it. `npm run dev` opens `http://localhost:4200` with Angular's real
+dev server (full hot reload) and NestJS running alongside on `:3000`,
+proxied together — from the browser it's one app on one port. For
+production, `npm run build && npm start` gives you the real single process
+on `:3000`, ready to deploy anywhere Node.js runs (an `apprunner.yaml` is
+included for a one-click AWS App Runner setup).
 
-We deliberately did **not** try to embed Angular's dev server as middleware
-inside the Nest process (the "one port" ideal) — `@angular/build`'s dev-server
-internals that would make that possible aren't part of its public API, so
-depending on them would break on any Angular patch release. Two processes +
-a proxy is the same trade-off Nx itself makes for mixed Angular/Node
-workspaces, and it costs nothing in production (see below).
+See [`create-progressive`'s README](./packages/create-progressive/README.md)
+for what the generated project looks like, and
+[`@progrest/ssr-nest`'s README](./packages/ssr-nest/README.md) if you want to
+wire the SSR bridge into an existing NestJS app by hand instead of
+scaffolding a new one.
 
-## Typed API bridge (no manual HTTP types)
+## How it works
 
-`npm run generate:api` (also runs automatically before `build` and `dev`) does:
+- **One process, no framework-specific magic beyond routing.** NestJS's
+  Fastify server owns every request: its own `@Controller()`s handle
+  `/api/*`, and anything they don't own falls through to Angular's
+  `AngularNodeAppEngine` for SSR.
+- **Typed API bridge, no manual HTTP types.** `npm run generate:api` turns
+  your Nest controllers/DTOs into an OpenAPI document (`@nestjs/swagger`),
+  then generates typed Angular `httpResource` functions from it
+  ([orval](https://orval.dev)) — add an endpoint, regenerate, and the
+  matching typed function shows up on the Angular side automatically.
+- **Render mode per route.** Mix `RenderMode.Server` (fresh SSR every
+  request) and `RenderMode.Prerender` (built once, served as a static file
+  forever) freely across your routes, same as Next.js's per-page rendering
+  strategies.
+- **`@defer` and ISR-style caching** work exactly as they do in a normal
+  Angular/Nest app — Progressive doesn't get in the way of either.
 
-1. Boots the Nest app just long enough to build its OpenAPI document via
-   `@nestjs/swagger` (`examples/playground-server/scripts/generate-openapi.ts`),
-   writing `examples/playground-server/openapi.json`.
-2. Runs [orval](https://orval.dev) (`orval.config.ts`) against that spec to
-   generate `examples/playground-web/src/app/api/generated.ts` — typed
-   `httpResource`-based functions, one per Nest endpoint.
+## Repo structure (this monorepo)
 
-The Angular side never hand-writes a `fetch`/`HttpClient` call or duplicates a
-response type; both files are gitignored build artifacts. Add an endpoint +
-DTO in `playground-server`, regenerate, and the exact matching type/function
-shows up on the Angular side automatically.
+An Nx workspace:
 
-## Render ergonomics (render modes, `@defer`, ISR-style caching)
+- **`packages/ssr-nest`** — [`@progrest/ssr-nest`](https://www.npmjs.com/package/@progrest/ssr-nest),
+  the publishable library behind the SSR bridge (one function,
+  `mountAngularSsr(app, { angularDistPath })`).
+- **`packages/create-progressive`** — [`create-progressive`](https://www.npmjs.com/package/create-progressive),
+  the scaffolder used by `npm create progressive@latest`.
+- **`examples/playground-web`** + **`examples/playground-server`** — the
+  reference app used to develop and dogfood the two packages above.
 
-- **Render mode per route** (`app.routes.server.ts`): `/` uses
-  `RenderMode.Server` (fresh SSR + a fresh `/api/health` call on every
-  request); `/about` uses `RenderMode.Prerender` (rendered once at build
-  time, served as a static file forever — reload it all you want, the
-  timestamp never changes). A real app mixes both freely, per route.
-- **`@defer`**: the home page's "Under the hood" section is
-  `@defer (on interaction(...))` — its code isn't in the initial JS bundle or
-  SSR payload, only fetched once you click the reveal button.
-- **ISR-style caching**: `GET /api/build-info` is wrapped in Nest's plain
-  `CacheInterceptor` with a 10s TTL — same trade-off as Next.js's Incremental
-  Static Regeneration, done with a framework-native interceptor instead of a
-  bespoke cache primitive.
+## Developing this repo
 
-Gotcha worth knowing if you touch these: a component field like
-`new Date().toISOString()` computed directly in the constructor gets
-**recomputed on the client during hydration** (only the DOM is reused, not
-the JS instance), silently overwriting the frozen prerendered value a moment
-after load. `about-page.ts` uses Angular's `TransferState` to carry the
-server-computed value across the hydration boundary instead.
-
-## Production build & run
+If you're working on Progressive itself (not just using it):
 
 ```sh
-npm run build     # builds both playground-web and playground-server
-NG_ALLOWED_HOSTS=localhost npm start
+npm install
+npm run dev              # playground-web + playground-server, hot reload, as above
+npm run build            # production build of both
+npx nx test playground-web   # unit tests
+npx nx run-many -t eslint:lint -p playground-server,ssr-nest,create-progressive
 ```
 
-Then open `http://localhost:3000` — this time it's the *real* single process,
-no proxy involved. `NG_ALLOWED_HOSTS` is required — Angular's SSR engine
-rejects requests from hosts not on this list (anti-SSRF protection) and
-silently falls back to client-only rendering instead of erroring, which is
-confusing the first time you hit it.
+We deliberately did **not** try to embed Angular's dev server as middleware
+inside the Nest process (the "one port" ideal, even in dev) —
+`@angular/build`'s dev-server internals that would make that possible aren't
+part of its public API, so depending on them would break on any Angular
+patch release. Two processes + a proxy is the same trade-off Nx itself makes
+for mixed Angular/Node workspaces, and it costs nothing in production.
 
-## Deploy
-
-See `apprunner.yaml` for the AWS App Runner setup (no servers to manage,
-deploys on every push).
+A couple of non-obvious things worth knowing if you touch the render-mode
+code: a component field like `new Date().toISOString()` computed directly in
+the constructor gets **recomputed on the client during hydration** (only the
+DOM is reused, not the JS instance), silently overwriting a frozen
+prerendered value a moment after load — `about-page.ts` uses Angular's
+`TransferState` to carry the server-computed value across the hydration
+boundary instead.
