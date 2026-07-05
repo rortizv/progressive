@@ -1,9 +1,12 @@
 # Progressive
 
+<p>
+  <img src="examples/playground-web/public/angular.png" alt="Angular" height="48" />
+  <img src="examples/playground-web/public/nestjs.svg" alt="NestJS" height="48" />
+</p>
+
 Angular (SSR) + NestJS in a single repo, single Node.js process — the idea of
 Next.js for the Angular + Nest ecosystem.
-
-Full plan and roadmap: [progressive_plan.md](./progressive_plan.md).
 
 ## What's here
 
@@ -97,5 +100,5 @@ confusing the first time you hit it.
 
 ## Deploy
 
-See `apprunner.yaml` and section 9 of [progressive_plan.md](./progressive_plan.md)
-for the AWS App Runner setup (no servers to manage, deploys on every push).
+See `apprunner.yaml` for the AWS App Runner setup (no servers to manage,
+deploys on every push).
