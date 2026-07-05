@@ -5,20 +5,18 @@
   <img src="examples/playground-web/public/nestjs.svg" alt="NestJS" height="48" />
 </p>
 
-**The Next.js idea, for Angular + NestJS.** Next.js works because React and
-its bundler are one product — pages, API routes, and rendering all live in a
-single app, a single process, a single deploy. Angular and NestJS were never
-designed together, so nobody gets that experience... until now.
+**A full-stack framework for Angular and NestJS.** Progressive mounts
+Angular's server-side rendering engine directly inside a NestJS (Fastify)
+server, so one repo and one build produce a single deployable unit: in
+production, **one Node.js process** serves your API and your rendered pages
+together — no separate front-end host to run, no CORS to configure, no
+second server to deploy.
 
-Progressive is the missing glue: it mounts Angular's server-side rendering
-engine directly inside a NestJS (Fastify) server. One repo, one build, and
-in production **one Node.js process** serves your API *and* your rendered
-pages — no separate front-end host, no CORS, no second server to deploy.
-
-You get real NestJS underneath (controllers, DI, guards, modules — not a
-stripped-down backend), Angular SSR with zoneless change detection, and a
-typed bridge between them so your API's shapes show up in Angular
-automatically, with no hand-written HTTP client code.
+Underneath, it's real NestJS — controllers, dependency injection, guards,
+modules, not a stripped-down backend — paired with Angular SSR and zoneless
+change detection. A typed bridge connects the two automatically: your API's
+response shapes show up on the Angular side with no hand-written HTTP client
+code to write or keep in sync.
 
 ## Quick start
 
@@ -55,10 +53,12 @@ scaffolding a new one.
   matching typed function shows up on the Angular side automatically.
 - **Render mode per route.** Mix `RenderMode.Server` (fresh SSR every
   request) and `RenderMode.Prerender` (built once, served as a static file
-  forever) freely across your routes, same as Next.js's per-page rendering
-  strategies.
-- **`@defer` and ISR-style caching** work exactly as they do in a normal
-  Angular/Nest app — Progressive doesn't get in the way of either.
+  forever) freely across your routes — static marketing pages and
+  dynamic, data-driven ones in the same app.
+- **`@defer` and response caching work as they do in any Angular/Nest app.**
+  Progressive doesn't get in the way of either — incremental hydration via
+  `@defer`, and time-based response caching via a plain Nest
+  `CacheInterceptor`, need no special wiring.
 
 ## Repo structure (this monorepo)
 

@@ -1,8 +1,9 @@
 # create-progressive
 
-The scaffolder for [Progressive](https://github.com/rortizv/progressive) —
-Angular (SSR) + NestJS in a single repo, single Node.js process. The idea of
-Next.js, for the Angular + Nest ecosystem.
+The scaffolder for [Progressive](https://github.com/rortizv/progressive) — a
+full-stack framework for Angular and NestJS: one repo, one build, and in
+production a single Node.js process serving both your API and your rendered
+pages.
 
 ## Usage
 
@@ -28,10 +29,12 @@ That's it — you get:
 
 ## Why
 
-Next.js works because React and its bundler are co-designed to blur the
-front-end/back-end line. Angular and NestJS were never designed together —
-`@progrest/ssr-nest` (the library this scaffolds on top of) is the missing
-glue: it mounts Angular's SSR engine inside a NestJS (Fastify) host, so one
-process serves both your API and your rendered pages.
+Angular and NestJS were never designed to run as one product — each has its
+own build tooling, its own server, its own conventions.
+[`@progrest/ssr-nest`](https://www.npmjs.com/package/@progrest/ssr-nest) (the
+library this scaffolds on top of) is the glue: it mounts Angular's SSR
+engine inside a NestJS (Fastify) host, so one process serves both your API
+and your rendered pages, with real NestJS underneath — controllers,
+dependency injection, guards, modules — not a stripped-down backend.
 
-Full write-up of how it works and why: [github.com/rortizv/progressive](https://github.com/rortizv/progressive).
+Full write-up of how it works: [github.com/rortizv/progressive](https://github.com/rortizv/progressive).
