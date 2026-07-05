@@ -46,6 +46,11 @@ before `app.listen()`. From then on:
 - Any route your own `@Controller()`s don't match falls through to Angular's
   `AngularNodeAppEngine` for SSR rendering.
 
+If `angularDistPath` doesn't exist yet (e.g. you're running Angular's own dev
+server, which serves everything in memory and never writes to disk),
+`mountAngularSsr` logs a warning and skips mounting instead of throwing —
+your Nest app still starts and serves its own routes normally.
+
 ## How it works
 
 Two things NestJS does that most integrations don't expect:
